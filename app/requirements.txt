@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+databases
+asyncpg
+python-dotenv
+requests
+openai
+pandas
