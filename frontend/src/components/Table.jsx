@@ -85,8 +85,10 @@ export default function Table() {
                 <td className="px-6 py-4 text-center">
                   {row.correct ? "✔" : "✘"}
                 </td>
-                <td className="px-6 py-4 text-left animate-marquee">
-                  {row.headline || "No headline available"}
+                <td className="px-6 py-4 text-left">
+                  <div className="overflow-hidden whitespace-nowrap animate-marquee text-sm font-digital">
+                    {row.headline || "No headline available"}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -114,6 +116,21 @@ export default function Table() {
         <p><strong>Calculated:</strong> Algorithmic calculation using LLM outputs like sentiment and confidence.</p>
         <p><strong>Average:</strong> The average of the Prediction and Calculated values.</p>
       </div>
+
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          display: inline-block;
+          white-space: nowrap;
+          animation: marquee 15s linear infinite;
+        }
+        .font-digital {
+          font-family: 'Courier New', Courier, monospace;
+        }
+      `}</style>
     </section>
   );
 }

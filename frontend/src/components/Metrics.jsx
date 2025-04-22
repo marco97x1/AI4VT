@@ -95,11 +95,6 @@ export default function Metrics() {
         <p className="text-gray-500 text-sm mb-1">Correct Predictions</p>
         <h2 className="text-2xl font-bold">{data.filter((d) => d.correct).length}</h2>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
-        <p className="text-gray-500 text-sm mb-1">Day-to-Day Improvement</p>
-        <h2 className="text-2xl font-bold">{today.improvement || "N/A"}</h2>
-        <p className="text-xs text-gray-400">Change in prediction accuracy compared to the previous day.</p>
-      </div>
       <style jsx>{`
         @keyframes marquee {
           0% { transform: translateX(100%); }
