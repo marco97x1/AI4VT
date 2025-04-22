@@ -46,6 +46,7 @@ export default function Metrics() {
         <h2 className={`text-2xl font-bold ${today.average_pct > 0 ? "text-green-500" : "text-red-500"}`}>
           {today.average_pct}%
         </h2>
+        <p className="text-xs text-gray-400">The average of all calculated metrics for today.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Confidence</p>
@@ -66,10 +67,12 @@ export default function Metrics() {
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Market Impact</p>
         <h2 className="text-2xl font-bold">{today.market_impact_score}</h2>
+        <p className="text-xs text-gray-400">A score indicating the potential market impact based on sentiment analysis.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Forecast Accuracy</p>
         <h2 className="text-2xl font-bold">{Math.round((data.filter((d) => d.correct).length / data.length) * 100)}%</h2>
+        <p className="text-xs text-gray-400">The percentage of correct predictions compared to total predictions.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Sentiment Score</p>

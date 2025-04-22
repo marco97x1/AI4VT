@@ -100,12 +100,27 @@ export default function Chart() {
     responsive: true,
     plugins: {
       legend: { display: true },
-      tooltip: { mode: "index", intersect: false }
+      tooltip: { mode: "index", intersect: false },
+      title: {
+        display: true,
+        text: "Real vs Forecasted vs Calculated Market Moves",
+        font: { size: 16 }
+      }
     },
     scales: {
       y: {
         ticks: {
           callback: (val) => `${val}%`
+        },
+        title: {
+          display: true,
+          text: "Percentage Change"
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Date"
         }
       }
     }
@@ -115,7 +130,26 @@ export default function Chart() {
     responsive: true,
     plugins: {
       legend: { display: true },
-      tooltip: { mode: "index", intersect: false }
+      tooltip: { mode: "index", intersect: false },
+      title: {
+        display: true,
+        text: "VT Value Over Time",
+        font: { size: 16 }
+      }
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: "VT Value"
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Date"
+        }
+      }
     }
   };
 
