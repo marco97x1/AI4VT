@@ -48,13 +48,18 @@ summaries = sqlalchemy.Table(
 
 # — Create FastAPI app —
 app = FastAPI(title="VT-ETF Prediction API")
+
+print("✅ FastAPI app created!")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # <- allow everything (or set to your Vercel URL later for security)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+print("✅ CORS Middleware added!")
 
 # — Pydantic models —
 class Result(BaseModel):
@@ -75,14 +80,17 @@ class Summary(BaseModel):
     date: str
     summary: str
 
-# — Startup and Shutdown events —
 @app.on_event("startup")
 async def startup():
+    print("🔌 Trying to connect to database...")
     await database.connect()
+    print("✅ Connected to database!")
 
 @app.on_event("shutdown")
 async def shutdown():
+    print("🔌 Disconnecting from database...")
     await database.disconnect()
+    print("✅ Disconnected from database!")
 
 @app.get("/results", response_model=list[Result])
 async def get_results():
