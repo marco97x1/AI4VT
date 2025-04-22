@@ -39,9 +39,10 @@ predictions = sqlalchemy.Table(
 )
 
 summaries = sqlalchemy.Table(
-    "summaries", metadata,
-    sqlalchemy.Column("date", sqlalchemy.Date, primary_key=True),
-    sqlalchemy.Column("summary", sqlalchemy.Text),
+    "headlines", metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("date", sqlalchemy.Date),
+    sqlalchemy.Column("headline", sqlalchemy.Text),
 )
 
 # — Create FastAPI app —
@@ -113,4 +114,7 @@ async def get_summary(date: str):
     row = await database.fetch_one(query)
     if not row:
         raise HTTPException(status_code=404, detail="No summary found for this date")
-    return Summary(**dict(row))
+
+    # Important! Rename 'headline' → 'summary' to match Pydantic model
+    row_dict = dict(row)
+    return Summary(date=row_dict["date"].strftime("%Y-%m-%d"), summary=row_dict["headline"])
