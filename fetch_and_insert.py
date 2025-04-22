@@ -113,11 +113,20 @@ def calculate_predicted_movement(sentiment, impact, confidence, volatility):
 # ============================
 def main():
     today = datetime.utcnow().date()
-    yesterday = today - timedelta(days=1)
 
-    # Correct time window for US Market: yesterday 16:00 to today 09:00
-    from_time = datetime.combine(yesterday, datetime.min.time()).replace(hour=16)
+    weekday = today.weekday()  # Monday = 0, Sunday = 6
+    if weekday == 0:
+        # If it's Monday, we must fetch news from Friday 16:00 to Monday 09:00
+        prev_day = today - timedelta(days=3)
+    else:
+        # Normal case: yesterday
+        prev_day = today - timedelta(days=1)
+
+    # Correct time window for US market hours
+    from_time = datetime.combine(prev_day, datetime.min.time()).replace(hour=16)
     to_time = datetime.combine(today, datetime.min.time()).replace(hour=9)
+
+    print(f"📅 Fetching news between {from_time} and {to_time}")
 
     # Fetch news and summarize
     news_summary = fetch_news_summary(from_time, to_time)
@@ -125,11 +134,11 @@ def main():
     # Fetch VT prices
     vt_prices = fetch_vt_prices()
 
-    close_yesterday = vt_prices.get(str(yesterday), {}).get('close')
+    close_yesterday = vt_prices.get(str(prev_day), {}).get('close')
     open_today = vt_prices.get(str(today), {}).get('open')
 
     if close_yesterday is None or open_today is None:
-        print("⚠️ Skipping - missing price data")
+        print(f"⚠️ Skipping {today} - missing price data")
         return
 
     real_move_pct = round((open_today - close_yesterday) / close_yesterday * 100, 2)
