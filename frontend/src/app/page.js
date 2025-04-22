@@ -143,7 +143,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="w-full text-center py-6 text-gray-400 text-sm">
-        © 2025 AI4VT — Built with ❤️ by Marco Beinat
+        © 2025 AI4VT Built with ❤️ by Marco Beinat
       </footer>
     </main>
   );
