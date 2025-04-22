@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export default function Table() {
   const [data, setData] = useState([]);
@@ -33,12 +32,12 @@ export default function Table() {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
             <tr>
-              <th className="px-6 py-3 text-left">Date</th>
-              <th className="px-6 py-3 text-right">Real %</th>
-              <th className="px-6 py-3 text-right">Forecast %</th>
-              <th className="px-6 py-3 text-right">Calc %</th>
-              <th className="px-6 py-3 text-right">Avg %</th>
-              <th className="px-6 py-3 text-center">Correct</th>
+              <th className="px-6 py-3 text-left">Date (Trading Day)</th>
+              <th className="px-6 py-3 text-right">Real % (Actual Market Move)</th>
+              <th className="px-6 py-3 text-right">Forecast % (Predicted Move)</th>
+              <th className="px-6 py-3 text-right">Calc % (Calculated Move)</th>
+              <th className="px-6 py-3 text-right">Avg % (Average of Metrics)</th>
+              <th className="px-6 py-3 text-center">Correct (✔/✘)</th>
             </tr>
           </thead>
           <tbody className="text-gray-700">
@@ -58,11 +57,7 @@ export default function Table() {
                   {row.average_pct}%
                 </td>
                 <td className="px-6 py-4 text-center">
-                  {row.correct ? (
-                    <ArrowUpRight className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <ArrowDownRight className="w-5 h-5 text-red-500" />
-                  )}
+                  {row.correct ? "✔" : "✘"}
                 </td>
               </tr>
             ))}

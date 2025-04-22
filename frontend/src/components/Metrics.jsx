@@ -37,8 +37,9 @@ export default function Metrics() {
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto py-10 px-4">
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
-        <p className="text-gray-500 text-sm mb-1">Win Rate</p>
+        <p className="text-gray-500 text-sm mb-1">Success Rate</p>
         <h2 className="text-2xl font-bold">{winRate}%</h2>
+        <p className="text-xs text-gray-400">Percentage of correct predictions over total predictions.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Today Average</p>
@@ -57,7 +58,7 @@ export default function Metrics() {
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Last Day Headline</p>
         <h2 className="text-md font-medium text-gray-700 animate-marquee">
-          {today.headline}
+          {today.headline || "No headline available for today."}
         </h2>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
@@ -75,6 +76,11 @@ export default function Metrics() {
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Correct Predictions</p>
         <h2 className="text-2xl font-bold">{data.filter((d) => d.correct).length}</h2>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Day-to-Day Improvement</p>
+        <h2 className="text-2xl font-bold">{today.improvement || "N/A"}</h2>
+        <p className="text-xs text-gray-400">Change in prediction accuracy compared to the previous day.</p>
       </div>
     </section>
   );

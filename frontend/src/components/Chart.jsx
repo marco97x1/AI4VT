@@ -79,10 +79,16 @@ export default function Chart() {
         fill: false,
         borderColor: "#f59e0b",
         tension: 0.3
-      },
+      }
+    ]
+  };
+
+  const vtValueChartData = {
+    labels: filteredData.map((d) => d.date),
+    datasets: [
       {
-        label: "Volatility Indicator",
-        data: filteredData.map((d) => parseFloat(d.volatility_indicator)),
+        label: "VT Value",
+        data: filteredData.map((d) => d.open_today),
         fill: false,
         borderColor: "#ef4444",
         tension: 0.3
@@ -93,7 +99,7 @@ export default function Chart() {
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: { display: false },
+      legend: { display: true },
       tooltip: { mode: "index", intersect: false }
     },
     scales: {
@@ -102,6 +108,14 @@ export default function Chart() {
           callback: (val) => `${val}%`
         }
       }
+    }
+  };
+
+  const vtChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      tooltip: { mode: "index", intersect: false }
     }
   };
 
@@ -123,6 +137,10 @@ export default function Chart() {
 
       <div className="bg-white p-6 rounded-lg shadow">
         <Line data={chartData} options={chartOptions} />
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow">
+        <Line data={vtValueChartData} options={vtChartOptions} />
       </div>
     </section>
   );
