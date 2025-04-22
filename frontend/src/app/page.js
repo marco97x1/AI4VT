@@ -53,7 +53,7 @@ export default function Home() {
             rel="noopener noreferrer"
             className="text-blue-600 text-sm hover:underline"
           >
-            Marco's LinkedIn
+            Marco&apos;s LinkedIn
           </a>
         </div>
       </header>
@@ -82,7 +82,7 @@ export default function Home() {
 
       {/* Today's Forecast */}
       <section className="bg-white p-8 rounded-lg shadow-md text-center w-full max-w-2xl space-y-4">
-        <h2 className="text-xl font-semibold">📈 Today's Forecast ({today?.date})</h2>
+        <h2 className="text-xl font-semibold">📈 Today&apos;s Forecast ({today?.date})</h2>
         <div className="flex flex-col items-center">
           <div className="flex items-center text-4xl font-bold space-x-2">
             {today?.average_pct > 0 ? (
