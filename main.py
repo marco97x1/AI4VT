@@ -4,7 +4,7 @@ import sqlalchemy
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, date
 
 # — Load environment variables —
 load_dotenv()
@@ -84,14 +84,16 @@ async def get_results():
         .order_by(daily_data.c.date)
     )
     rows = await database.fetch_all(query)
-    
+
     fixed_rows = []
     for r in rows:
         r_dict = dict(r)
-        if isinstance(r_dict["date"], datetime):
-            r_dict["date"] = r_dict["date"].strftime("%Y-%m-%d")  # Convert to string
+        if isinstance(r_dict["date"], (datetime, )):
+            r_dict["date"] = r_dict["date"].strftime("%Y-%m-%d")
+        elif isinstance(r_dict["date"], (datetime.date, )):
+            r_dict["date"] = r_dict["date"].isoformat()
         fixed_rows.append(Result(**r_dict))
-    
+
     return fixed_rows
 
 # — GET /summary/{date} endpoint —
