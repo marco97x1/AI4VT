@@ -1,8 +1,8 @@
 import os
 import databases
-from fastapi.middleware.cors import CORSMiddleware
 import sqlalchemy
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from datetime import datetime, date
