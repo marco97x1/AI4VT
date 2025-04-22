@@ -54,6 +54,28 @@ export default function Metrics() {
         <p className="text-gray-500 text-sm mb-1">Volatility</p>
         <h2 className="text-2xl font-bold">{today.volatility_indicator}</h2>
       </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Last Day Headline</p>
+        <h2 className="text-md font-medium text-gray-700 animate-marquee">
+          {today.headline}
+        </h2>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Market Impact</p>
+        <h2 className="text-2xl font-bold">{today.market_impact_score}</h2>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Forecast Accuracy</p>
+        <h2 className="text-2xl font-bold">{Math.round((data.filter((d) => d.correct).length / data.length) * 100)}%</h2>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Sentiment Score</p>
+        <h2 className="text-2xl font-bold">{today.sentiment_score}</h2>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <p className="text-gray-500 text-sm mb-1">Correct Predictions</p>
+        <h2 className="text-2xl font-bold">{data.filter((d) => d.correct).length}</h2>
+      </div>
     </section>
   );
 }

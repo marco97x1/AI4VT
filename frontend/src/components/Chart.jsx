@@ -65,6 +65,27 @@ export default function Chart() {
         fill: false,
         borderColor: "#2563eb",
         tension: 0.3
+      },
+      {
+        label: "Forecasted % Move",
+        data: filteredData.map((d) => d.forecasted_pct),
+        fill: false,
+        borderColor: "#10b981",
+        tension: 0.3
+      },
+      {
+        label: "Calculated % Move",
+        data: filteredData.map((d) => d.calculated_pct),
+        fill: false,
+        borderColor: "#f59e0b",
+        tension: 0.3
+      },
+      {
+        label: "Volatility Indicator",
+        data: filteredData.map((d) => parseFloat(d.volatility_indicator)),
+        fill: false,
+        borderColor: "#ef4444",
+        tension: 0.3
       }
     ]
   };
