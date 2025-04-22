@@ -110,11 +110,16 @@ async def get_results():
 # — GET /summary/{date} endpoint —
 @app.get("/summary/{date}", response_model=Summary)
 async def get_summary(date: str):
-    query = summaries.select().where(summaries.c.date == date)
+    try:
+        # Convert date string to a real date object
+        date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    query = summaries.select().where(summaries.c.date == date_obj)
     row = await database.fetch_one(query)
     if not row:
         raise HTTPException(status_code=404, detail="No summary found for this date")
 
-    # Important! Rename 'headline' → 'summary' to match Pydantic model
     row_dict = dict(row)
     return Summary(date=row_dict["date"].strftime("%Y-%m-%d"), summary=row_dict["headline"])
