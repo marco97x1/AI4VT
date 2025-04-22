@@ -11,12 +11,14 @@ export default function Hero() {
       </p>
       <p className="text-sm text-gray-600 max-w-2xl mb-8">
         <strong>Tech Stack:</strong>
+      </p>
+      <div className="text-sm text-gray-600 max-w-2xl mb-8">
         <span className="inline-block bg-gray-800 text-white px-3 py-1 rounded-md mr-2">FastAPI</span>
         <span className="inline-block bg-green-500 text-white px-3 py-1 rounded-md mr-2">Supabase</span>
         <span className="inline-block bg-purple-600 text-white px-3 py-1 rounded-md mr-2">OpenAI</span>
         <span className="inline-block bg-gray-900 text-white px-3 py-1 rounded-md mr-2">Railway</span>
         <span className="inline-block bg-black text-white px-3 py-1 rounded-md">Vercel</span>
-      </p>
+      </div>
     </section>
   );
 }

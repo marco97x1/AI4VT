@@ -26,6 +26,31 @@ export default function Table() {
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
+  useEffect(() => {
+    async function fetchHeadlines() {
+      try {
+        const updatedData = await Promise.all(
+          currentItems.map(async (row) => {
+            const res = await fetch(`https://ai4vt-production.up.railway.app/summary/${row.date}`);
+            const json = await res.json();
+            return { ...row, headline: json.summary };
+          })
+        );
+        setData((prevData) =>
+          prevData.map((row) =>
+            updatedData.find((updatedRow) => updatedRow.date === row.date) || row
+          )
+        );
+      } catch (error) {
+        console.error("Error fetching headlines:", error);
+      }
+    }
+
+    if (currentItems.length > 0) {
+      fetchHeadlines();
+    }
+  }, [currentItems]);
+
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
       <div className="bg-white rounded-lg shadow overflow-x-auto">

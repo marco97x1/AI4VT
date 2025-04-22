@@ -102,20 +102,21 @@ export default function Chart() {
       legend: {
         display: true,
         labels: {
-          boxWidth: 12,
-          boxHeight: 12,
+          boxWidth: 10,
+          boxHeight: 10,
           usePointStyle: true,
           pointStyle: "circle",
           font: {
-            size: 14,
+            size: 12,
             family: "Arial, sans-serif"
-          }
+          },
+          color: "#333"
         }
       },
       tooltip: {
         mode: "index",
         intersect: false,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        backgroundColor: "rgba(50, 50, 50, 0.9)",
         titleFont: {
           size: 14,
           family: "Arial, sans-serif"
@@ -127,11 +128,12 @@ export default function Chart() {
       },
       title: {
         display: true,
-        text: "Real vs Forecasted vs Calculated Market Moves",
+        text: "Market Moves",
         font: {
           size: 18,
           family: "Arial, sans-serif"
-        }
+        },
+        color: "#333"
       }
     },
     scales: {
@@ -141,7 +143,8 @@ export default function Chart() {
           font: {
             size: 12,
             family: "Arial, sans-serif"
-          }
+          },
+          color: "#333"
         },
         title: {
           display: true,
@@ -149,7 +152,8 @@ export default function Chart() {
           font: {
             size: 14,
             family: "Arial, sans-serif"
-          }
+          },
+          color: "#333"
         }
       },
       x: {
@@ -157,7 +161,8 @@ export default function Chart() {
           font: {
             size: 12,
             family: "Arial, sans-serif"
-          }
+          },
+          color: "#333"
         },
         title: {
           display: true,
@@ -165,48 +170,24 @@ export default function Chart() {
           font: {
             size: 14,
             family: "Arial, sans-serif"
-          }
+          },
+          color: "#333"
         }
       }
     }
   };
 
-  const vtChartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: { mode: "index", intersect: false },
-      title: {
-        display: true,
-        text: "VT Value Over Time",
-        font: { size: 16 }
-      }
-    },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: "VT Value"
-        }
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Date"
-        }
-      }
-    }
-  };
+  const filterOptions = ["1W", "1M", "1Y", "ALL"];
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-10 space-y-6">
       <div className="flex justify-center space-x-4 mb-6">
-        {["1M", "3M", "1Y", "ALL"].map((r) => (
+        {filterOptions.map((r) => (
           <button
             key={r}
             onClick={() => setRange(r)}
             className={`px-4 py-2 rounded-full border ${
-              range === r ? "bg-blue-600 text-white" : "text-gray-600"
+              range === r ? "bg-black text-white" : "bg-gray-300 text-gray-800"
             }`}
           >
             {r}
@@ -215,11 +196,11 @@ export default function Chart() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-8 rounded-lg shadow">
           <Line data={chartData} options={chartOptions} />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <Line data={vtValueChartData} options={vtChartOptions} />
+        <div className="bg-white p-8 rounded-lg shadow">
+          <Line data={vtValueChartData} options={chartOptions} />
         </div>
       </div>
     </section>
