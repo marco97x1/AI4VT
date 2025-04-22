@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
 
         {/* Footer */}
         <footer className="w-full bg-gray-100 dark:bg-gray-800 text-center py-4 text-sm text-gray-500">
-          Built with ❤️ by Marco — 2025
+          Built with ❤️ by Marco &mdash; 2025
         </footer>
       </body>
     </html>
