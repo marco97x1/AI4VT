@@ -40,7 +40,7 @@ export default function Home() {
       {today && (
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md w-full max-w-2xl text-center space-y-4">
           <h1 className="text-2xl font-bold">
-            📈 Today's Forecast ({today.date})
+            📈 Today&apos;s Forecast ({today.date})
           </h1>
           <div className="flex flex-col items-center space-y-2">
             <div className="flex items-center space-x-2 text-4xl font-bold">
