@@ -91,22 +91,23 @@ def get_results():
     rows = connection.execute(query).mappings().all()
 
     fixed_rows = []
-    for r_dict in rows:
-        if isinstance(r_dict["date"], (datetime, date)):
-            r_dict["date"] = r_dict["date"].strftime("%Y-%m-%d")
-        if r_dict["close_yesterday"] is not None:
-            r_dict["close_yesterday"] = float(r_dict["close_yesterday"])
-        if r_dict["open_today"] is not None:
-            r_dict["open_today"] = float(r_dict["open_today"])
-        if r_dict["real_move_pct"] is not None:
-            r_dict["real_move_pct"] = float(r_dict["real_move_pct"])
-        if r_dict["forecasted_pct"] is not None:
-            r_dict["forecasted_pct"] = float(r_dict["forecasted_pct"])
-        if r_dict["calculated_pct"] is not None:
-            r_dict["calculated_pct"] = float(r_dict["calculated_pct"])
-        if r_dict["average_pct"] is not None:
-            r_dict["average_pct"] = float(r_dict["average_pct"])
-        fixed_rows.append(Result(**r_dict))
+    for r in rows:
+        new_r = dict(r)
+        if isinstance(new_r["date"], (datetime, date)):
+            new_r["date"] = new_r["date"].strftime("%Y-%m-%d")
+        if new_r["close_yesterday"] is not None:
+            new_r["close_yesterday"] = float(new_r["close_yesterday"])
+        if new_r["open_today"] is not None:
+            new_r["open_today"] = float(new_r["open_today"])
+        if new_r["real_move_pct"] is not None:
+            new_r["real_move_pct"] = float(new_r["real_move_pct"])
+        if new_r["forecasted_pct"] is not None:
+            new_r["forecasted_pct"] = float(new_r["forecasted_pct"])
+        if new_r["calculated_pct"] is not None:
+            new_r["calculated_pct"] = float(new_r["calculated_pct"])
+        if new_r["average_pct"] is not None:
+            new_r["average_pct"] = float(new_r["average_pct"])
+        fixed_rows.append(Result(**new_r))
 
     return fixed_rows
 
