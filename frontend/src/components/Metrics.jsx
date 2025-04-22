@@ -50,10 +50,12 @@ export default function Metrics() {
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Confidence</p>
         <h2 className="text-2xl font-bold">{today.confidence_level}%</h2>
+        <p className="text-xs text-gray-400">Confidence level of the prediction based on sentiment analysis.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Volatility</p>
         <h2 className="text-2xl font-bold">{today.volatility_indicator}</h2>
+        <p className="text-xs text-gray-400">Indicates the expected market volatility for the day.</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Last Day Headline</p>

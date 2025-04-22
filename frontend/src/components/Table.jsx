@@ -38,6 +38,7 @@ export default function Table() {
               <th className="px-6 py-3 text-right">Calc % (Calculated Move)</th>
               <th className="px-6 py-3 text-right">Avg % (Average of Metrics)</th>
               <th className="px-6 py-3 text-center">Correct (✔/✘)</th>
+              <th className="px-6 py-3 text-left">Headline</th>
             </tr>
           </thead>
           <tbody className="text-gray-700">
@@ -58,6 +59,9 @@ export default function Table() {
                 </td>
                 <td className="px-6 py-4 text-center">
                   {row.correct ? "✔" : "✘"}
+                </td>
+                <td className="px-6 py-4 text-left animate-marquee">
+                  {row.headline || "No headline available"}
                 </td>
               </tr>
             ))}

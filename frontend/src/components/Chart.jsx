@@ -135,12 +135,13 @@ export default function Chart() {
         ))}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <Line data={chartData} options={chartOptions} />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow">
-        <Line data={vtValueChartData} options={vtChartOptions} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <Line data={chartData} options={chartOptions} />
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <Line data={vtValueChartData} options={vtChartOptions} />
+        </div>
       </div>
     </section>
   );

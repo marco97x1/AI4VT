@@ -9,6 +9,9 @@ export default function Hero() {
       <p className="text-sm text-gray-600 max-w-2xl mb-8">
         AI4VT leverages advanced AI models to analyze a wide range of financial data, including news headlines, market trends, and sentiment metrics, to forecast how the VT ETF will open in the next trading session. This tool aims to provide actionable insights for investors and researchers.
       </p>
+      <p className="text-sm text-gray-600 max-w-2xl mb-8">
+        <strong>Tech Stack:</strong> Built with <span className="font-bold">Vercel</span>, <span className="font-bold">Supabase</span>, <span className="font-bold">OpenAI</span>, <span className="font-bold">Railway</span>, and <span className="font-bold">FastAPI</span>. The goal is to create an AI-ready tool with minimal economic effort.
+      </p>
     </section>
   );
 }
