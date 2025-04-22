@@ -1,7 +1,8 @@
 fastapi
-uvicorn[standard]
+uvicorn
 databases
-asyncpg
+sqlalchemy
+psycopg2-binary
 python-dotenv
 requests
 openai
