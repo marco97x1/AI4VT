@@ -1,6 +1,6 @@
 import os
-import databases
 import sqlalchemy
+from sqlalchemy import create_engine
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,7 +14,9 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL not set")
 
-database = databases.Database(DATABASE_URL)
+engine = create_engine(DATABASE_URL)
+connection = engine.connect()
+
 metadata = sqlalchemy.MetaData()
 
 # — Define your tables —
@@ -49,8 +51,7 @@ summaries = sqlalchemy.Table(
 # — Create FastAPI app —
 app = FastAPI(title="VT-ETF Prediction API")
 
-print("✅ FastAPI app created!")
-
+# — CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,8 +59,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-print("✅ CORS Middleware added!")
 
 # — Pydantic models —
 class Result(BaseModel):
@@ -80,27 +79,16 @@ class Summary(BaseModel):
     date: str
     summary: str
 
-@app.on_event("startup")
-async def startup():
-    print("🔌 Trying to connect to database...")
-    await database.connect()
-    print("✅ Connected to database!")
-
-@app.on_event("shutdown")
-async def shutdown():
-    print("🔌 Disconnecting from database...")
-    await database.disconnect()
-    print("✅ Disconnected from database!")
-
+# — API Endpoints —
 @app.get("/results", response_model=list[Result])
-async def get_results():
+def get_results():
     query = (
         daily_data
         .join(predictions, daily_data.c.date == predictions.c.date)
         .select()
         .order_by(daily_data.c.date)
     )
-    rows = await database.fetch_all(query)
+    rows = connection.execute(query).fetchall()
 
     fixed_rows = []
     for r in rows:
@@ -123,17 +111,16 @@ async def get_results():
 
     return fixed_rows
 
-# — GET /summary/{date} endpoint —
 @app.get("/summary/{date}", response_model=Summary)
-async def get_summary(date: str):
+def get_summary(date: str):
     try:
-        # Convert date string to a real date object
+        # Convert date string to date object
         date_obj = datetime.strptime(date, "%Y-%m-%d").date()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
 
     query = summaries.select().where(summaries.c.date == date_obj)
-    row = await database.fetch_one(query)
+    row = connection.execute(query).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="No summary found for this date")
 
