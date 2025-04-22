@@ -195,11 +195,11 @@ export default function Chart() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-8 rounded-lg shadow">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white p-10 rounded-lg shadow">
           <Line data={chartData} options={chartOptions} />
         </div>
-        <div className="bg-white p-8 rounded-lg shadow">
+        <div className="bg-white p-10 rounded-lg shadow">
           <Line data={vtValueChartData} options={chartOptions} />
         </div>
       </div>

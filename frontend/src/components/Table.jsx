@@ -86,8 +86,11 @@ export default function Table() {
                   {row.correct ? "✔" : "✘"}
                 </td>
                 <td className="px-6 py-4 text-left">
-                  <div className="overflow-hidden whitespace-nowrap animate-marquee text-sm font-digital">
-                    {row.headline || "No headline available"}
+                  <div className="overflow-hidden whitespace-nowrap relative">
+                    <div className="absolute animate-marquee text-sm font-digital">
+                      {`${row.headline || "No headline available"} 
+                      `.repeat(10)}
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -125,7 +128,7 @@ export default function Table() {
         .animate-marquee {
           display: inline-block;
           white-space: nowrap;
-          animation: marquee 15s linear infinite;
+          animation: marquee 20s linear infinite;
         }
         .font-digital {
           font-family: 'Courier New', Courier, monospace;
