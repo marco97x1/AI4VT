@@ -88,10 +88,20 @@ async def get_results():
     fixed_rows = []
     for r in rows:
         r_dict = dict(r)
-        if isinstance(r_dict["date"], (datetime, )):
+        if isinstance(r_dict["date"], (datetime, date)):
             r_dict["date"] = r_dict["date"].strftime("%Y-%m-%d")
-        elif isinstance(r_dict["date"], (datetime.date, )):
-            r_dict["date"] = r_dict["date"].isoformat()
+        if r_dict["close_yesterday"] is not None:
+            r_dict["close_yesterday"] = float(r_dict["close_yesterday"])
+        if r_dict["open_today"] is not None:
+            r_dict["open_today"] = float(r_dict["open_today"])
+        if r_dict["real_move_pct"] is not None:
+            r_dict["real_move_pct"] = float(r_dict["real_move_pct"])
+        if r_dict["forecasted_pct"] is not None:
+            r_dict["forecasted_pct"] = float(r_dict["forecasted_pct"])
+        if r_dict["calculated_pct"] is not None:
+            r_dict["calculated_pct"] = float(r_dict["calculated_pct"])
+        if r_dict["average_pct"] is not None:
+            r_dict["average_pct"] = float(r_dict["average_pct"])
         fixed_rows.append(Result(**r_dict))
 
     return fixed_rows
