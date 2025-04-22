@@ -88,11 +88,10 @@ def get_results():
         .select()
         .order_by(daily_data.c.date)
     )
-    rows = connection.execute(query).fetchall()
+    rows = connection.execute(query).mappings().all()
 
     fixed_rows = []
-    for r in rows:
-        r_dict = dict(r)
+    for r_dict in rows:
         if isinstance(r_dict["date"], (datetime, date)):
             r_dict["date"] = r_dict["date"].strftime("%Y-%m-%d")
         if r_dict["close_yesterday"] is not None:
