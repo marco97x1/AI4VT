@@ -1,5 +1,6 @@
 import os
 import databases
+from fastapi.middleware.cors import CORSMiddleware
 import sqlalchemy
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -47,6 +48,13 @@ summaries = sqlalchemy.Table(
 
 # — Create FastAPI app —
 app = FastAPI(title="VT-ETF Prediction API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # <- allow everything (or set to your Vercel URL later for security)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # — Pydantic models —
 class Result(BaseModel):
