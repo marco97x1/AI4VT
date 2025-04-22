@@ -99,28 +99,73 @@ export default function Chart() {
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: { display: true },
-      tooltip: { mode: "index", intersect: false },
+      legend: {
+        display: true,
+        labels: {
+          boxWidth: 12,
+          boxHeight: 12,
+          usePointStyle: true,
+          pointStyle: "circle",
+          font: {
+            size: 14,
+            family: "Arial, sans-serif"
+          }
+        }
+      },
+      tooltip: {
+        mode: "index",
+        intersect: false,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleFont: {
+          size: 14,
+          family: "Arial, sans-serif"
+        },
+        bodyFont: {
+          size: 12,
+          family: "Arial, sans-serif"
+        }
+      },
       title: {
         display: true,
         text: "Real vs Forecasted vs Calculated Market Moves",
-        font: { size: 16 }
+        font: {
+          size: 18,
+          family: "Arial, sans-serif"
+        }
       }
     },
     scales: {
       y: {
         ticks: {
-          callback: (val) => `${val}%`
+          callback: (val) => `${val}%`,
+          font: {
+            size: 12,
+            family: "Arial, sans-serif"
+          }
         },
         title: {
           display: true,
-          text: "Percentage Change"
+          text: "Percentage Change",
+          font: {
+            size: 14,
+            family: "Arial, sans-serif"
+          }
         }
       },
       x: {
+        ticks: {
+          font: {
+            size: 12,
+            family: "Arial, sans-serif"
+          }
+        },
         title: {
           display: true,
-          text: "Date"
+          text: "Date",
+          font: {
+            size: 14,
+            family: "Arial, sans-serif"
+          }
         }
       }
     }

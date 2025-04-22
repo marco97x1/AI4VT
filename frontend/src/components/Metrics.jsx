@@ -58,11 +58,14 @@ export default function Metrics() {
         <h2 className="text-2xl font-bold">{today.volatility_indicator}</h2>
         <p className="text-xs text-gray-400">Indicates the expected market volatility for the day.</p>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
-        <p className="text-gray-500 text-sm mb-1">Last Day Headline</p>
-        <h2 className="text-md font-medium text-gray-700 animate-marquee">
-          {today.headline || "No headline available for today."}
-        </h2>
+      <div className="bg-white p-6 rounded-lg shadow flex items-center overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap text-lg font-medium text-gray-700">
+          {data.map((item, index) => (
+            <span key={index} className="mx-4">
+              {item.headline || "No headline available"}
+            </span>
+          ))}
+        </div>
       </div>
       <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
         <p className="text-gray-500 text-sm mb-1">Market Impact</p>

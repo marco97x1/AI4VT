@@ -76,12 +76,18 @@ export default function Table() {
             key={i}
             onClick={() => setCurrentPage(i + 1)}
             className={`px-3 py-1 rounded-md border ${
-              currentPage === i + 1 ? "bg-blue-600 text-white" : "text-gray-600"
+              currentPage === i + 1 ? "bg-black text-white" : "bg-gray-200 text-gray-800"
             }`}
           >
             {i + 1}
           </button>
         ))}
+      </div>
+
+      <div className="mt-6 text-sm text-gray-600">
+        <p><strong>Prediction:</strong> LLM-based prediction of market movement.</p>
+        <p><strong>Calculated:</strong> Algorithmic calculation using LLM outputs like sentiment and confidence.</p>
+        <p><strong>Average:</strong> The average of the Prediction and Calculated values.</p>
       </div>
     </section>
   );
