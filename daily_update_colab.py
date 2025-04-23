@@ -46,8 +46,30 @@ def get_market_timing_for_date(target_date):
 # Fetch financial indicators
 def fetch_vt_close_data(closing_day):
     print(f"[LOG] Fetching VT close data for {closing_day}")
-    # Replace with actual logic to fetch VT close data
-    return {"date": closing_day, "close": 100.0}
+    url = f"https://financialmodelingprep.com/api/v3/historical-price-full/VT"
+    params = {"serietype": "line", "timeseries": 10, "apikey": FMP_API_KEY}
+    response = requests.get(url, params=params)
+    data = response.json()
+    for row in data.get("historical", []):
+        row_date = datetime.strptime(row["date"], "%Y-%m-%d").date()
+        if row_date == closing_day:
+            return {"date": row_date, "close": row["close"]}
+    print(f"⚠️ No closing price found for {closing_day}. Check data source.")
+    return None
+
+def fetch_vt_open_data(forecast_day):
+    print(f"[LOG] Fetching VT open data for {forecast_day}")
+    url = f"https://financialmodelingprep.com/api/v3/historical-chart/1min/VT"
+    params = {"apikey": FMP_API_KEY}
+    response = requests.get(url, params=params)
+    data = response.json()
+    if isinstance(data, list):
+        for entry in reversed(data):
+            entry_date = datetime.strptime(entry["date"], "%Y-%m-%d %H:%M:%S").date()
+            if entry_date == forecast_day:
+                return {"date": entry_date, "open": entry["open"]}
+    print(f"⚠️ No open price found for {forecast_day}. Check data source.")
+    return None
 
 def fetch_pre_market_signals():
     print("[LOG] Fetching pre-market signals")
@@ -97,6 +119,11 @@ def run_forecast_update_for_specific_date(target_date):
         if vt_data:
             validate_data_date(vt_data["date"], closing_day)
 
+        vt_open_data = fetch_vt_open_data(forecast_day)
+        print(f"[LOG] VT Open Data: {vt_open_data}")
+        if vt_open_data:
+            validate_data_date(vt_open_data["date"], forecast_day)
+
         pre_market = fetch_pre_market_signals()
         print(f"[LOG] Pre-Market Signals: {pre_market}")
 
@@ -115,6 +142,7 @@ def run_forecast_update_for_specific_date(target_date):
         You are an economic assistant forecasting the VT ETF daily movement.
         Today's date: {forecast_day}.
         Yesterday's VT data: {vt_data}
+        Today's VT open data: {vt_open_data}
         Pre-market signals: {pre_market}
         News headlines:
         {chr(10).join(f"- {title}" for title in headlines)}
@@ -165,10 +193,10 @@ def run_forecast_update_for_specific_date(target_date):
         cursor.execute(
             """
             UPDATE daily_data
-            SET close_yesterday = %s
+            SET close_yesterday = %s, open_today = %s
             WHERE date = %s
             """,
-            (vt_data["close"], forecast_day)
+            (vt_data["close"], vt_open_data["open"], forecast_day)
         )
 
         # Proceed with inserting into predictions and headlines
