@@ -105,19 +105,21 @@ http://localhost:8000
 Service	Provider	Status
 Backend API	Railway	🟢 Online
 Database	Supabase	🟢 Online
-Frontend	Vercel	(Coming soon)
-
+Frontend	Vercel 🟢 Online
+Jobs  Github Actions 🟢 Online
 --- 
 
-## ✨ Future Improvements
- Build beautiful Vercel frontend to visualize data 📊
+## 🔄 Recent Updates
 
- Improve LLM prompts and fine-tuning to boost accuracy 🎯
+### April 23, 2025
+- Added a new script `market_open_update.py` to handle market open updates.
+- Improved backend API performance for `/results` and `/summary/{date}` endpoints.
+- Enhanced logging for daily cron jobs to ensure better monitoring and debugging.
+- Updated dependencies in `requirements.txt` to the latest versions.
+- Completed the frontend development, ready for deployment on Vercel.
 
- Add a dashboard: trends over time, confidence statistics 📈
+### Coming Soon
+- User authentication and personalized watchlists.
 
- Allow filtering by date ranges on frontend 🔍
-
- Add user authentication and saved watchlists 🛡️
 
 

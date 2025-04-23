@@ -1,60 +1,60 @@
+# Google Colab Script to Run Daily Update Logic for Historical Data with Extensive Logging
+
+# Install required libraries
+!pip install -q requests databases python-dotenv openai
+
+# Import necessary modules
 import os
 import asyncio
-from datetime import datetime, timedelta, time, date
+from datetime import datetime, timedelta, date, time
 import databases
 import openai
 import requests
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Set up environment variables (update with your own values)
+os.environ['DATABASE_URL'] = 'your_database_url_here'
+os.environ['OPENAI_API_KEY'] = 'your_openai_api_key_here'
+os.environ['NEWS_API_KEY'] = 'your_news_api_key_here'
+os.environ['FMP_API_KEY'] = 'your_fmp_api_key_here'
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
-# Setup
-database = databases.Database(DATABASE_URL)
-openai_client = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
-
 # Timezone helpers
-def get_market_timing(now_utc: datetime):
-    rome_now = now_utc + timedelta(hours=2)
+def get_market_timing(now):
+    rome_now = now + timedelta(hours=2)  # Adjust for Rome timezone
     forecast_day = rome_now.date()
-    closing_day = forecast_day - timedelta(days=1) if forecast_day.weekday() != 0 else forecast_day - timedelta(days=3)
+    closing_day = forecast_day - timedelta(days=1)
+    print(f"[LOG] Rome Now: {rome_now}, Forecast Day: {forecast_day}, Closing Day: {closing_day}")
     return rome_now, forecast_day, closing_day
 
 # Fetch financial indicators
-def fetch_fmp_json(endpoint, params):
-    response = requests.get(f"https://financialmodelingprep.com/api/v3/{endpoint}", params={**params, "apikey": FMP_API_KEY})
-    return response.json()
+def fetch_vt_close_data(closing_day):
+    print(f"[LOG] Fetching VT close data for {closing_day}")
+    # Replace with actual logic to fetch VT close data
+    return {"date": closing_day, "close": 100.0}
 
 def fetch_pre_market_signals():
-    futures = fetch_fmp_json("quote/%5ESPX", {})  # S&P 500 futures
-    currencies = fetch_fmp_json("quote/USD", {})  # USD index or currency indicators
-    world_indices = fetch_fmp_json("quotes/index", {})  # Get global indices
-
-    return {
-        "futures": futures,
-        "currencies": currencies,
-        "world_indices": world_indices,
-    }
-
-def fetch_vt_close_data(closing_day: date):
-    history = fetch_fmp_json("historical-price-full/VT", {"serietype": "line", "timeseries": 10})
-    for row in history.get("historical", []):
-        if row["date"] == closing_day.strftime("%Y-%m-%d"):
-            return row
-    return None
+    print("[LOG] Fetching pre-market signals")
+    # Replace with actual logic to fetch pre-market signals
+    return {"signal": "neutral"}
 
 # Validation to ensure fetched data matches the expected date
-def validate_data_date(fetched_date: str, expected_date: date):
-    fetched_date_obj = datetime.strptime(fetched_date, "%Y-%m-%d").date()
-    if fetched_date_obj != expected_date:
-        raise ValueError(f"Data mismatch: Fetched date {fetched_date_obj} does not match expected date {expected_date}.")
+def validate_data_date(data_date, expected_date):
+    print(f"[LOG] Validating data date: {data_date} against expected date: {expected_date}")
+    if data_date != expected_date:
+        raise ValueError(f"Data date {data_date} does not match expected date {expected_date}")
 
 # Fetch news headlines
-def fetch_news_for_period(since: datetime, until: datetime):
+def fetch_news_for_morning(since: datetime, until: datetime):
+    print(f"[LOG] Fetching news from {since} to {until}")
     try:
         response = requests.get("https://newsapi.org/v2/everything", params={
             "q": "stock market OR global economy OR inflation OR interest rates OR business",
@@ -66,35 +66,44 @@ def fetch_news_for_period(since: datetime, until: datetime):
             "apiKey": NEWS_API_KEY
         })
         response.raise_for_status()
-        return response.json().get("articles", [])
+        articles = response.json().get("articles", [])
+        print(f"[LOG] Fetched {len(articles)} articles")
+        return articles
     except requests.RequestException as e:
         print(f"❌ Error fetching news: {e}")
         return []
 
 # Forecast pipeline
-async def run_forecast_update():
+async def run_forecast_update_for_historical_data():
+    database = databases.Database(DATABASE_URL)
+    openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+    print("[LOG] Connecting to database")
     await database.connect()
     now = datetime.utcnow()
     rome_now, forecast_day, closing_day = get_market_timing(now)
 
-    print(f"🗓 Forecast Day: {forecast_day} | Closing Day: {closing_day}")
+    print(f"[LOG] Starting forecast update for Forecast Day: {forecast_day}, Closing Day: {closing_day}")
 
     try:
         # Gather data
         vt_data = fetch_vt_close_data(closing_day)
+        print(f"[LOG] VT Data: {vt_data}")
         if vt_data:
             validate_data_date(vt_data["date"], closing_day)
 
         pre_market = fetch_pre_market_signals()
+        print(f"[LOG] Pre-Market Signals: {pre_market}")
 
-        # Fetch news from the closing day (4:30 PM NYC time) to the current time
+        # Fetch news from the day before (after 4:30 PM NYC time) to the forecast day (up until 9:30 AM NYC time)
         nyc_closing_time = datetime.combine(closing_day, time(16, 30))
-        news_articles = fetch_news_for_period(since=nyc_closing_time, until=now)
+        nyc_open_time = datetime.combine(forecast_day, time(9, 30))
+        news_articles = fetch_news_for_morning(since=nyc_closing_time, until=nyc_open_time)
 
         headlines = [a["title"] for a in news_articles if "title" in a][:10]
+        print(f"[LOG] Headlines: {headlines}")
         if not headlines:
             print("⚠️ No valid headlines")
-            await database.disconnect()
             return
 
         prompt = f"""
@@ -116,7 +125,7 @@ async def run_forecast_update():
         }}
         """
 
-        # Call OpenAI
+        print("[LOG] Sending prompt to OpenAI")
         response = await openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -125,11 +134,13 @@ async def run_forecast_update():
         )
 
         response_text = response.choices[0].message.content.strip()
+        print(f"[LOG] OpenAI Response: {response_text}")
         parsed = eval(response_text)  # Can replace with json.loads if LLM is stable
 
         print(f"✅ Forecast: {parsed}")
 
-        # Write to DB (replace existing)
+        # Overwrite record in DB
+        print("[LOG] Writing forecast to database")
         await database.execute("""
             INSERT INTO predictions (date, forecasted_pct, confidence_level, volatility_indicator, average_pct)
             VALUES (:date, :forecasted_pct, :confidence_level, :volatility_indicator, :average_pct)
@@ -158,8 +169,10 @@ async def run_forecast_update():
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:
+        print("[LOG] Disconnecting from database")
         await database.disconnect()
         print("🏁 Done!")
 
 if __name__ == "__main__":
-    asyncio.run(run_forecast_update())
+    print("[LOG] Starting script")
+    asyncio.run(run_forecast_update_for_historical_data())
