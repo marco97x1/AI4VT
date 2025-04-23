@@ -13,6 +13,15 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set. Please configure it in your environment variables.")
+
+# Debug environment variables
+print("DATABASE_URL:", DATABASE_URL)
+print("FMP_API_KEY:", FMP_API_KEY[:5] + "...hidden")
+print("NEWS_API_KEY:", NEWS_API_KEY[:5] + "...hidden")
+print("OPENAI_API_KEY:", OPENAI_API_KEY[:5] + "...hidden")
+
 # Connect to database
 database = databases.Database(DATABASE_URL)
 
