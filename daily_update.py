@@ -1,5 +1,5 @@
 import os
-import sqlite3
+import psycopg2
 from datetime import datetime, timedelta, time, date
 import openai
 import requests
@@ -68,7 +68,7 @@ def fetch_news_for_period(since: datetime, until: datetime):
 
 # Forecast pipeline
 def run_forecast_update():
-    connection = sqlite3.connect(DATABASE_URL)
+    connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
 
     now = datetime.utcnow()
@@ -131,12 +131,12 @@ def run_forecast_update():
         cursor.execute(
             """
             INSERT INTO predictions (date, forecasted_pct, confidence_level, volatility_indicator, average_pct)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(date) DO UPDATE SET
-              forecasted_pct = excluded.forecasted_pct,
-              confidence_level = excluded.confidence_level,
-              volatility_indicator = excluded.volatility_indicator,
-              average_pct = excluded.average_pct
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (date) DO UPDATE SET
+              forecasted_pct = EXCLUDED.forecasted_pct,
+              confidence_level = EXCLUDED.confidence_level,
+              volatility_indicator = EXCLUDED.volatility_indicator,
+              average_pct = EXCLUDED.average_pct
             """,
             (
                 forecast_day,
@@ -150,8 +150,8 @@ def run_forecast_update():
         cursor.execute(
             """
             INSERT INTO headlines (date, headline)
-            VALUES (?, ?)
-            ON CONFLICT(date) DO UPDATE SET headline = excluded.headline
+            VALUES (%s, %s)
+            ON CONFLICT (date) DO UPDATE SET headline = EXCLUDED.headline
             """,
             (forecast_day, parsed["headline_summary"])
         )
@@ -161,6 +161,7 @@ def run_forecast_update():
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:
+        cursor.close()
         connection.close()
         print("🏁 Done!")
 

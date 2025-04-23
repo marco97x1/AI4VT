@@ -1,5 +1,5 @@
 import os
-import sqlite3
+import psycopg2
 import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -30,12 +30,13 @@ def fetch_open_price():
     return None
 
 def run_market_open_update():
-    connection = sqlite3.connect(DATABASE_URL)
+    connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
 
     open_price = fetch_open_price()
     if open_price is None:
         print("⚠️ Could not fetch open price.")
+        cursor.close()
         connection.close()
         return
 
@@ -43,11 +44,12 @@ def run_market_open_update():
 
     query = """
         UPDATE daily_data
-        SET open_today = ?
-        WHERE date = ?
+        SET open_today = %s
+        WHERE date = %s
     """
     cursor.execute(query, (open_price, market_day_str))
     connection.commit()
+    cursor.close()
     connection.close()
     print("✅ Market open update completed.")
 

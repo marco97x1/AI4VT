@@ -1,7 +1,7 @@
 # Google Colab Script to Run Daily Update Logic for Historical Data with Extensive Logging
 
 # Install required libraries
-!pip install -q requests databases python-dotenv openai
+!pip install -q requests databases python-dotenv openai psycopg2
 
 # Import necessary modules
 import os
@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, date, time
 import openai
 import requests
 from dotenv import load_dotenv
+import psycopg2
 
 # Example variable for target date
 # Replace '2025-04-10' with the desired date in 'YYYY-MM-DD' format
@@ -146,6 +147,40 @@ def run_forecast_update_for_specific_date(target_date):
 
         # Simulate writing to database (replace with actual database logic if needed)
         print("[LOG] Writing forecast to database")
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO predictions (date, forecasted_pct, confidence_level, volatility_indicator, average_pct)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (date) DO UPDATE SET
+              forecasted_pct = EXCLUDED.forecasted_pct,
+              confidence_level = EXCLUDED.confidence_level,
+              volatility_indicator = EXCLUDED.volatility_indicator,
+              average_pct = EXCLUDED.average_pct
+            """,
+            (
+                forecast_day,
+                parsed["forecasted_pct"],
+                parsed["confidence_level"],
+                parsed["volatility_indicator"],
+                parsed["forecasted_pct"]
+            )
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO headlines (date, headline)
+            VALUES (%s, %s)
+            ON CONFLICT (date) DO UPDATE SET headline = EXCLUDED.headline
+            """,
+            (forecast_day, parsed["headline_summary"])
+        )
+
+        connection.commit()
+        cursor.close()
+        connection.close()
 
     except Exception as e:
         print(f"❌ Error: {e}")
