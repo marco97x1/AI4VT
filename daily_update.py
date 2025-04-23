@@ -127,7 +127,30 @@ def run_forecast_update():
 
         print(f"✅ Forecast: {parsed}")
 
-        # Write to DB (replace existing)
+        # Ensure daily_data is updated first before inserting into predictions and headlines
+        print("[LOG] Ensuring date exists in daily_data table")
+        cursor.execute(
+            """
+            INSERT INTO daily_data (date)
+            VALUES (%s)
+            ON CONFLICT (date) DO NOTHING
+            """,
+            (forecast_day,)
+        )
+
+        # Update daily_data with any new data if available
+        print("[LOG] Updating daily_data with new data if available")
+        cursor.execute(
+            """
+            UPDATE daily_data
+            SET close = %s
+            WHERE date = %s
+            """,
+            (vt_data["close"], forecast_day)
+        )
+
+        # Proceed with inserting into predictions and headlines
+        print("[LOG] Writing forecast to database")
         cursor.execute(
             """
             INSERT INTO predictions (date, forecasted_pct, confidence_level, volatility_indicator, average_pct)

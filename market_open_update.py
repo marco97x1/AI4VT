@@ -42,12 +42,27 @@ def run_market_open_update():
 
     print(f"📈 Inserting open price {open_price} for {market_day_str}...")
 
-    query = """
+    # Simplify the logic to only ensure the date exists and update the open_today field
+    print("[LOG] Ensuring date exists in daily_data table")
+    cursor.execute(
+        """
+        INSERT INTO daily_data (date)
+        VALUES (%s)
+        ON CONFLICT (date) DO NOTHING
+        """,
+        (market_day_str,)
+    )
+
+    print("[LOG] Updating daily_data with open price")
+    cursor.execute(
+        """
         UPDATE daily_data
         SET open_today = %s
         WHERE date = %s
-    """
-    cursor.execute(query, (open_price, market_day_str))
+        """,
+        (open_price, market_day_str)
+    )
+
     connection.commit()
     cursor.close()
     connection.close()
