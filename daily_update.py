@@ -143,7 +143,7 @@ def run_forecast_update():
         cursor.execute(
             """
             UPDATE daily_data
-            SET close = %s
+            SET close_yesterday = %s
             WHERE date = %s
             """,
             (vt_data["close"], forecast_day)
