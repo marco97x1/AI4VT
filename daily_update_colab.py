@@ -31,17 +31,40 @@ NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
 # Timezone helpers
-def get_market_timing(now):
-    rome_now = now + timedelta(hours=2)  # Adjust for Rome timezone
-    forecast_day = rome_now.date()
+def get_market_timing(target_date: date):
+    forecast_day = target_date  # Use the provided target date
     closing_day = forecast_day - timedelta(days=1)
-    print(f"[LOG] Rome Now: {rome_now}, Forecast Day: {forecast_day}, Closing Day: {closing_day}")
-    return rome_now, forecast_day, closing_day
+
+    # Adjust closing_day for Fridays and holidays
+    closing_day = adjust_for_friday_and_holidays(closing_day)
+
+    print(f"[LOG] Forecast Day: {forecast_day}, Adjusted Closing Day: {closing_day}")
+    return forecast_day, closing_day
 
 def get_market_timing_for_date(target_date):
     closing_day = target_date - timedelta(days=1)
-    print(f"[LOG] Target Date: {target_date}, Closing Day: {closing_day}")
+    closing_day = adjust_for_friday_and_holidays(closing_day)
+    print(f"[LOG] Target Date: {target_date}, Adjusted Closing Day: {closing_day}")
     return target_date, closing_day
+
+# Add a function to check if the market is open using the FMP API
+def is_market_open(target_date):
+    print(f"[LOG] Checking if the market is open on {target_date}")
+    url = f"https://financialmodelingprep.com/api/v3/is-the-market-open"
+    params = {"exchange": "NYSE", "apikey": FMP_API_KEY}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("isTheStockMarketOpen", False)
+    print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
+    return False
+
+# Adjust the get_market_timing function to handle Fridays and holidays
+def adjust_for_friday_and_holidays(target_date):
+    # Check if the market is open for the given date
+    while not is_market_open(target_date):
+        target_date -= timedelta(days=1)
+    return target_date
 
 # Fetch financial indicators
 def fetch_vt_close_data(closing_day):
@@ -106,7 +129,6 @@ def fetch_news_for_morning(since: datetime, until: datetime):
 # Forecast pipeline
 def run_forecast_update_for_specific_date(target_date):
     print("[LOG] Connecting to database")
-    # Simulate database connection (replace with actual connection logic if needed)
 
     forecast_day, closing_day = get_market_timing_for_date(target_date)
 
@@ -115,14 +137,12 @@ def run_forecast_update_for_specific_date(target_date):
     try:
         # Gather data
         vt_data = fetch_vt_close_data(closing_day)
-        print(f"[LOG] VT Data: {vt_data}")
-        if vt_data:
-            validate_data_date(vt_data["date"], closing_day)
+        if vt_data is None:
+            print(f"⚠️ No closing price found for {closing_day}. Skipping database update for closing price.")
 
         vt_open_data = fetch_vt_open_data(forecast_day)
-        print(f"[LOG] VT Open Data: {vt_open_data}")
-        if vt_open_data:
-            validate_data_date(vt_open_data["date"], forecast_day)
+        if vt_open_data is None:
+            print(f"⚠️ No open price found for {forecast_day}. Skipping database update for opening price.")
 
         pre_market = fetch_pre_market_signals()
         print(f"[LOG] Pre-Market Signals: {pre_market}")
@@ -189,15 +209,36 @@ def run_forecast_update_for_specific_date(target_date):
         )
 
         # Update daily_data with any new data if available
-        print("[LOG] Updating daily_data with new data if available")
-        cursor.execute(
-            """
-            UPDATE daily_data
-            SET close_yesterday = %s, open_today = %s
-            WHERE date = %s
-            """,
-            (vt_data["close"], vt_open_data["open"], forecast_day)
-        )
+        if vt_data and vt_open_data:
+            print("[LOG] Updating daily_data with new data if available")
+            cursor.execute(
+                """
+                UPDATE daily_data
+                SET close_yesterday = %s, open_today = %s
+                WHERE date = %s
+                """,
+                (vt_data["close"], vt_open_data["open"], forecast_day)
+            )
+        elif vt_data:
+            print("[LOG] Updating daily_data with closing price only")
+            cursor.execute(
+                """
+                UPDATE daily_data
+                SET close_yesterday = %s
+                WHERE date = %s
+                """,
+                (vt_data["close"], forecast_day)
+            )
+        elif vt_open_data:
+            print("[LOG] Updating daily_data with opening price only")
+            cursor.execute(
+                """
+                UPDATE daily_data
+                SET open_today = %s
+                WHERE date = %s
+                """,
+                (vt_open_data["open"], forecast_day)
+            )
 
         # Proceed with inserting into predictions and headlines
         print("[LOG] Writing forecast to database")

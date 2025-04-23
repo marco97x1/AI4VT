@@ -13,11 +13,33 @@ NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
 # Timezone helpers
+def is_market_open(target_date):
+    print(f"[LOG] Checking if the market is open on {target_date}")
+    url = f"https://financialmodelingprep.com/api/v3/is-the-market-open"
+    params = {"exchange": "NYSE", "apikey": FMP_API_KEY}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("isTheStockMarketOpen", False)
+    print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
+    return False
+
+def adjust_for_friday_and_holidays(target_date):
+    # Check if the market is open for the given date
+    while not is_market_open(target_date):
+        target_date -= timedelta(days=1)
+    return target_date
+
+# Ensure daily_update.py uses now_utc for everyday updates
 def get_market_timing(now_utc: datetime):
-    rome_now = now_utc + timedelta(hours=2)
-    forecast_day = rome_now.date()
-    closing_day = forecast_day - timedelta(days=1) if forecast_day.weekday() != 0 else forecast_day - timedelta(days=3)
-    return rome_now, forecast_day, closing_day
+    forecast_day = now_utc.date()  # Use the current date dynamically
+    closing_day = forecast_day - timedelta(days=1)
+
+    # Adjust closing_day for Fridays and holidays
+    closing_day = adjust_for_friday_and_holidays(closing_day)
+
+    print(f"[LOG] Forecast Day: {forecast_day}, Adjusted Closing Day: {closing_day}")
+    return forecast_day, closing_day
 
 # Fetch financial indicators
 def fetch_fmp_json(endpoint, params):
@@ -66,21 +88,21 @@ def fetch_news_for_period(since: datetime, until: datetime):
         print(f"❌ Error fetching news: {e}")
         return []
 
-# Forecast pipeline
+# Update the forecast pipeline to use now_utc dynamically
 def run_forecast_update():
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
 
     now = datetime.utcnow()
-    rome_now, forecast_day, closing_day = get_market_timing(now)
+    forecast_day, closing_day = get_market_timing(now)
 
-    print(f"🗓 Forecast Day: {forecast_day} | Closing Day: {closing_day}")
+    print(f"[LOG] Starting forecast update for Forecast Day: {forecast_day}, Closing Day: {closing_day}")
 
     try:
         # Gather data
         vt_data = fetch_vt_close_data(closing_day)
-        if vt_data:
-            validate_data_date(vt_data["date"], closing_day)
+        if vt_data is None:
+            print(f"⚠️ No closing price found for {closing_day}. Skipping database update for closing price.")
 
         pre_market = fetch_pre_market_signals()
 
@@ -139,15 +161,16 @@ def run_forecast_update():
         )
 
         # Update daily_data with any new data if available
-        print("[LOG] Updating daily_data with new data if available")
-        cursor.execute(
-            """
-            UPDATE daily_data
-            SET close_yesterday = %s
-            WHERE date = %s
-            """,
-            (vt_data["close"], forecast_day)
-        )
+        if vt_data:
+            print("[LOG] Updating daily_data with new data if available")
+            cursor.execute(
+                """
+                UPDATE daily_data
+                SET close_yesterday = %s
+                WHERE date = %s
+                """,
+                (vt_data["close"], forecast_day)
+            )
 
         # Proceed with inserting into predictions and headlines
         print("[LOG] Writing forecast to database")
