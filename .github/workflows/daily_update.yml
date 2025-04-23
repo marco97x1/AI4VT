@@ -1,0 +1,28 @@
+name: Daily Update
+
+on:
+  schedule:
+    - cron: "0 8 * * 1-5" # 10:00 AM Rome time, Monday to Friday
+    - cron: "30 12 * * 1-5" # 2:30 PM Rome time, Monday to Friday
+
+jobs:
+  run-daily-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run daily_update.py
+        run: |
+          python daily_update.py

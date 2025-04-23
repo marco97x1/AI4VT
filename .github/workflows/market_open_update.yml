@@ -1,0 +1,27 @@
+name: Market Open Update
+
+on:
+  schedule:
+    - cron: "30 19 * * 1-5" # 3:30 PM NYC time (7:30 PM UTC), Monday to Friday
+
+jobs:
+  run-market-open-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run market_open_update.py
+        run: |
+          python market_open_update.py
