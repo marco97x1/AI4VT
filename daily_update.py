@@ -1,7 +1,6 @@
 import os
-import asyncio
+import sqlite3
 from datetime import datetime, timedelta, time, date
-import databases
 import openai
 import requests
 from dotenv import load_dotenv
@@ -12,10 +11,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 FMP_API_KEY = os.getenv("FMP_API_KEY")
-
-# Setup
-database = databases.Database(DATABASE_URL)
-openai_client = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # Timezone helpers
 def get_market_timing(now_utc: datetime):
@@ -72,8 +67,10 @@ def fetch_news_for_period(since: datetime, until: datetime):
         return []
 
 # Forecast pipeline
-async def run_forecast_update():
-    await database.connect()
+def run_forecast_update():
+    connection = sqlite3.connect(DATABASE_URL)
+    cursor = connection.cursor()
+
     now = datetime.utcnow()
     rome_now, forecast_day, closing_day = get_market_timing(now)
 
@@ -94,7 +91,7 @@ async def run_forecast_update():
         headlines = [a["title"] for a in news_articles if "title" in a][:10]
         if not headlines:
             print("⚠️ No valid headlines")
-            await database.disconnect()
+            connection.close()
             return
 
         prompt = f"""
@@ -117,7 +114,8 @@ async def run_forecast_update():
         """
 
         # Call OpenAI
-        response = await openai_client.chat.completions.create(
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
@@ -130,36 +128,41 @@ async def run_forecast_update():
         print(f"✅ Forecast: {parsed}")
 
         # Write to DB (replace existing)
-        await database.execute("""
+        cursor.execute(
+            """
             INSERT INTO predictions (date, forecasted_pct, confidence_level, volatility_indicator, average_pct)
-            VALUES (:date, :forecasted_pct, :confidence_level, :volatility_indicator, :average_pct)
-            ON CONFLICT (date) DO UPDATE
-              SET forecasted_pct = EXCLUDED.forecasted_pct,
-                  confidence_level = EXCLUDED.confidence_level,
-                  volatility_indicator = EXCLUDED.volatility_indicator,
-                  average_pct = EXCLUDED.average_pct
-        """, {
-            "date": forecast_day,
-            "forecasted_pct": parsed["forecasted_pct"],
-            "confidence_level": parsed["confidence_level"],
-            "volatility_indicator": parsed["volatility_indicator"],
-            "average_pct": parsed["forecasted_pct"]
-        })
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(date) DO UPDATE SET
+              forecasted_pct = excluded.forecasted_pct,
+              confidence_level = excluded.confidence_level,
+              volatility_indicator = excluded.volatility_indicator,
+              average_pct = excluded.average_pct
+            """,
+            (
+                forecast_day,
+                parsed["forecasted_pct"],
+                parsed["confidence_level"],
+                parsed["volatility_indicator"],
+                parsed["forecasted_pct"]
+            )
+        )
 
-        await database.execute("""
+        cursor.execute(
+            """
             INSERT INTO headlines (date, headline)
-            VALUES (:date, :headline)
-            ON CONFLICT (date) DO UPDATE SET headline = EXCLUDED.headline
-        """, {
-            "date": forecast_day,
-            "headline": parsed["headline_summary"]
-        })
+            VALUES (?, ?)
+            ON CONFLICT(date) DO UPDATE SET headline = excluded.headline
+            """,
+            (forecast_day, parsed["headline_summary"])
+        )
+
+        connection.commit()
 
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:
-        await database.disconnect()
+        connection.close()
         print("🏁 Done!")
 
 if __name__ == "__main__":
-    asyncio.run(run_forecast_update())
+    run_forecast_update()

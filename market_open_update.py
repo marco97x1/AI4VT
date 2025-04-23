@@ -1,6 +1,5 @@
 import os
-import asyncio
-import databases
+import sqlite3
 import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -13,9 +12,6 @@ FMP_API_KEY = os.getenv("FMP_API_KEY")
 
 if not DATABASE_URL or not FMP_API_KEY:
     raise RuntimeError("Missing DATABASE_URL or FMP_API_KEY")
-
-# Connect to the database
-database = databases.Database(DATABASE_URL)
 
 # Determine the date to update
 now = datetime.utcnow() + timedelta(hours=2)  # Rome is UTC+2
@@ -33,24 +29,27 @@ def fetch_open_price():
                 return float(entry["open"])
     return None
 
-async def run_market_open_update():
-    await database.connect()
+def run_market_open_update():
+    connection = sqlite3.connect(DATABASE_URL)
+    cursor = connection.cursor()
+
     open_price = fetch_open_price()
     if open_price is None:
         print("⚠️ Could not fetch open price.")
-        await database.disconnect()
+        connection.close()
         return
 
     print(f"📈 Inserting open price {open_price} for {market_day_str}...")
 
     query = """
         UPDATE daily_data
-        SET open_today = :open_today
-        WHERE date = :date
+        SET open_today = ?
+        WHERE date = ?
     """
-    await database.execute(query, values={"open_today": open_price, "date": market_day_str})
-    await database.disconnect()
+    cursor.execute(query, (open_price, market_day_str))
+    connection.commit()
+    connection.close()
     print("✅ Market open update completed.")
 
 if __name__ == "__main__":
-    asyncio.run(run_market_open_update())
+    run_market_open_update()
