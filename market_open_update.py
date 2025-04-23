@@ -13,10 +13,28 @@ FMP_API_KEY = os.getenv("FMP_API_KEY")
 if not DATABASE_URL or not FMP_API_KEY:
     raise RuntimeError("Missing DATABASE_URL or FMP_API_KEY")
 
-# Determine the date to update
-now = datetime.utcnow() + timedelta(hours=2)  # Rome is UTC+2
-market_day = now.date()
-market_day_str = market_day.strftime("%Y-%m-%d")
+def is_market_open(target_date):
+    print(f"[LOG] Checking if the market is open on {target_date}")
+    url = f"https://financialmodelingprep.com/api/v3/is-the-market-open"
+    params = {"exchange": "NYSE", "apikey": FMP_API_KEY}
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("isTheStockMarketOpen", False)
+    print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
+    return False
+
+def adjust_for_friday_and_holidays(target_date):
+    # Check if the market is open for the given date
+    while not is_market_open(target_date):
+        target_date -= timedelta(days=1)
+    return target_date
+
+def get_market_day(now_utc: datetime):
+    market_day = now_utc.date()  # Use the current US day (NYC time)
+    market_day = adjust_for_friday_and_holidays(market_day)
+    print(f"[LOG] Adjusted Market Day: {market_day}")
+    return market_day
 
 def fetch_open_price():
     url = "https://financialmodelingprep.com/api/v3/historical-chart/1min/VT"
@@ -32,6 +50,10 @@ def fetch_open_price():
 def run_market_open_update():
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
+
+    now = datetime.utcnow()
+    market_day = get_market_day(now)
+    market_day_str = market_day.strftime("%Y-%m-%d")
 
     open_price = fetch_open_price()
     if open_price is None:
