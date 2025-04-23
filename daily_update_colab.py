@@ -11,6 +11,8 @@ import databases
 import openai
 import requests
 from dotenv import load_dotenv
+import nest_asyncio
+nest_asyncio.apply()
 
 # Example variable for target date
 # Replace '2025-04-10' with the desired date in 'YYYY-MM-DD' format
@@ -135,7 +137,7 @@ async def run_forecast_update_for_historical_data():
         """
 
         print("[LOG] Sending prompt to OpenAI")
-        response = await openai_client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
@@ -233,7 +235,7 @@ async def run_forecast_update_for_specific_date(target_date):
         """
 
         print("[LOG] Sending prompt to OpenAI")
-        response = await openai_client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.4,
@@ -279,3 +281,13 @@ async def run_forecast_update_for_specific_date(target_date):
         print("[LOG] Disconnecting from database")
         await database.disconnect()
         print("🏁 Done!")
+
+# Main function to run the script for a specific date
+async def main():
+    print("[LOG] Starting script")
+    target_date_obj = datetime.strptime(target_date, '%Y-%m-%d').date()
+    # Use await directly instead of asyncio.run
+    await run_forecast_update_for_specific_date(target_date_obj)
+
+# Call the main function explicitly
+await main()
