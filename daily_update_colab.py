@@ -30,23 +30,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
-# Timezone helpers
-def get_market_timing(target_date: date):
-    forecast_day = target_date  # Use the provided target date
-    closing_day = forecast_day - timedelta(days=1)
-
-    # Adjust closing_day for Fridays and holidays
-    closing_day = adjust_for_friday_and_holidays(closing_day)
-
-    print(f"[LOG] Forecast Day: {forecast_day}, Adjusted Closing Day: {closing_day}")
-    return forecast_day, closing_day
-
-def get_market_timing_for_date(target_date):
-    closing_day = target_date - timedelta(days=1)
-    closing_day = adjust_for_friday_and_holidays(closing_day)
-    print(f"[LOG] Target Date: {target_date}, Adjusted Closing Day: {closing_day}")
-    return target_date, closing_day
-
 # Add a function to check if the market is open using the FMP API
 def is_market_open(target_date):
     print(f"[LOG] Checking if the market is open on {target_date}")
@@ -59,9 +42,13 @@ def is_market_open(target_date):
     print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
     return False
 
-# Adjust the get_market_timing function to handle Fridays and holidays
+# Update adjust_for_friday_and_holidays to go back to the date where closing data exists
 def adjust_for_friday_and_holidays(target_date):
     # Check if the market is open for the given date
+    if is_market_open(target_date):
+        return target_date
+
+    # If the market is closed, go back one day until closing data exists
     while not is_market_open(target_date):
         target_date -= timedelta(days=1)
     return target_date
@@ -126,13 +113,25 @@ def fetch_news_for_morning(since: datetime, until: datetime):
         print(f"❌ Error fetching news: {e}")
         return []
 
+# Get the most recent valid closing date
+def get_closing_date(target_date):
+    while True:
+        print(f"[LOG] Checking if market was open on {target_date}")
+        if is_market_open(target_date):
+            return target_date
+        target_date -= timedelta(days=1)
+
 # Forecast pipeline
 def run_forecast_update_for_specific_date(target_date):
     print("[LOG] Connecting to database")
 
-    forecast_day, closing_day = get_market_timing_for_date(target_date)
+    # Stop execution if the market is closed
+    if not is_market_open(target_date):
+        print(f"[LOG] Market is closed on {target_date}. Stopping execution.")
+        return
 
-    print(f"[LOG] Starting forecast update for Forecast Day: {forecast_day}, Closing Day: {closing_day}")
+    closing_day = get_closing_date(target_date - timedelta(days=1))
+    print(f"[LOG] Starting forecast update for Forecast Day: {target_date}, Closing Day: {closing_day}")
 
     try:
         # Gather data
@@ -140,16 +139,16 @@ def run_forecast_update_for_specific_date(target_date):
         if vt_data is None:
             print(f"⚠️ No closing price found for {closing_day}. Skipping database update for closing price.")
 
-        vt_open_data = fetch_vt_open_data(forecast_day)
+        vt_open_data = fetch_vt_open_data(target_date)
         if vt_open_data is None:
-            print(f"⚠️ No open price found for {forecast_day}. Skipping database update for opening price.")
+            print(f"⚠️ No open price found for {target_date}. Skipping database update for opening price.")
 
         pre_market = fetch_pre_market_signals()
         print(f"[LOG] Pre-Market Signals: {pre_market}")
 
         # Fetch news from the day before (after 4:30 PM NYC time) to the forecast day (up until 9:30 AM NYC time)
         nyc_closing_time = datetime.combine(closing_day, time(16, 30))
-        nyc_open_time = datetime.combine(forecast_day, time(9, 30))
+        nyc_open_time = datetime.combine(target_date, time(9, 30))
         news_articles = fetch_news_for_morning(since=nyc_closing_time, until=nyc_open_time)
 
         headlines = [a["title"] for a in news_articles if "title" in a][:10]
@@ -160,7 +159,7 @@ def run_forecast_update_for_specific_date(target_date):
 
         prompt = f"""
         You are an economic assistant forecasting the VT ETF daily movement.
-        Today's date: {forecast_day}.
+        Today's date: {target_date}.
         Yesterday's VT data: {vt_data}
         Today's VT open data: {vt_open_data}
         Pre-market signals: {pre_market}
@@ -205,7 +204,7 @@ def run_forecast_update_for_specific_date(target_date):
             VALUES (%s)
             ON CONFLICT (date) DO NOTHING
             """,
-            (forecast_day,)
+            (target_date,)
         )
 
         # Update daily_data with any new data if available
@@ -217,7 +216,7 @@ def run_forecast_update_for_specific_date(target_date):
                 SET close_yesterday = %s, open_today = %s
                 WHERE date = %s
                 """,
-                (vt_data["close"], vt_open_data["open"], forecast_day)
+                (vt_data["close"], vt_open_data["open"], target_date)
             )
         elif vt_data:
             print("[LOG] Updating daily_data with closing price only")
@@ -227,7 +226,7 @@ def run_forecast_update_for_specific_date(target_date):
                 SET close_yesterday = %s
                 WHERE date = %s
                 """,
-                (vt_data["close"], forecast_day)
+                (vt_data["close"], target_date)
             )
         elif vt_open_data:
             print("[LOG] Updating daily_data with opening price only")
@@ -237,7 +236,7 @@ def run_forecast_update_for_specific_date(target_date):
                 SET open_today = %s
                 WHERE date = %s
                 """,
-                (vt_open_data["open"], forecast_day)
+                (vt_open_data["open"], target_date)
             )
 
         # Proceed with inserting into predictions and headlines
@@ -253,7 +252,7 @@ def run_forecast_update_for_specific_date(target_date):
               average_pct = EXCLUDED.average_pct
             """,
             (
-                forecast_day,
+                target_date,
                 parsed["forecasted_pct"],
                 parsed["confidence_level"],
                 parsed["volatility_indicator"],
@@ -267,7 +266,7 @@ def run_forecast_update_for_specific_date(target_date):
             VALUES (%s, %s)
             ON CONFLICT (date) DO UPDATE SET headline = EXCLUDED.headline
             """,
-            (forecast_day, parsed["headline_summary"])
+            (target_date, parsed["headline_summary"])
         )
 
         connection.commit()

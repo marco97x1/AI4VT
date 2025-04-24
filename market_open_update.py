@@ -24,18 +24,6 @@ def is_market_open(target_date):
     print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
     return False
 
-def adjust_for_friday_and_holidays(target_date):
-    # Check if the market is open for the given date
-    while not is_market_open(target_date):
-        target_date -= timedelta(days=1)
-    return target_date
-
-def get_market_day(now_utc: datetime):
-    market_day = now_utc.date()  # Use the current US day (NYC time)
-    market_day = adjust_for_friday_and_holidays(market_day)
-    print(f"[LOG] Adjusted Market Day: {market_day}")
-    return market_day
-
 def fetch_open_price():
     url = "https://financialmodelingprep.com/api/v3/historical-chart/1min/VT"
     params = {"apikey": FMP_API_KEY}
@@ -48,12 +36,16 @@ def fetch_open_price():
     return None
 
 def run_market_open_update():
+    now = datetime.utcnow()
+    market_day = now.date()
+
+    # Stop execution if the market is closed
+    if not is_market_open(market_day):
+        print(f"[LOG] Market is closed on {market_day}. Stopping execution.")
+        return
+
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
-
-    now = datetime.utcnow()
-    market_day = get_market_day(now)
-    market_day_str = market_day.strftime("%Y-%m-%d")
 
     open_price = fetch_open_price()
     if open_price is None:
@@ -62,9 +54,8 @@ def run_market_open_update():
         connection.close()
         return
 
-    print(f"📈 Inserting open price {open_price} for {market_day_str}...")
+    print(f"📈 Inserting open price {open_price} for {market_day}...")
 
-    # Simplify the logic to only ensure the date exists and update the open_today field
     print("[LOG] Ensuring date exists in daily_data table")
     cursor.execute(
         """
@@ -72,7 +63,7 @@ def run_market_open_update():
         VALUES (%s)
         ON CONFLICT (date) DO NOTHING
         """,
-        (market_day_str,)
+        (market_day,)
     )
 
     print("[LOG] Updating daily_data with open price")
@@ -82,7 +73,7 @@ def run_market_open_update():
         SET open_today = %s
         WHERE date = %s
         """,
-        (open_price, market_day_str)
+        (open_price, market_day)
     )
 
     connection.commit()

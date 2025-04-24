@@ -2,11 +2,17 @@ name: Market Open Update
 
 on:
   schedule:
-    - cron: "30 19 * * 1-5" # 3:30 PM NYC time (7:30 PM UTC), Monday to Friday
+    - cron: "0 14 * * 1-5" # 10:00 AM NYC time (2:00 PM UTC), Monday to Friday
 
 jobs:
   run-market-open-update:
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
 
     steps:
       - name: Checkout repository

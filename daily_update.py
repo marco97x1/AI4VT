@@ -24,22 +24,12 @@ def is_market_open(target_date):
     print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
     return False
 
-def adjust_for_friday_and_holidays(target_date):
-    # Check if the market is open for the given date
-    while not is_market_open(target_date):
+def get_closing_date(target_date):
+    while True:
+        print(f"[LOG] Checking if market was open on {target_date}")
+        if is_market_open(target_date):
+            return target_date
         target_date -= timedelta(days=1)
-    return target_date
-
-# Ensure daily_update.py uses now_utc for everyday updates
-def get_market_timing(now_utc: datetime):
-    forecast_day = now_utc.date()  # Use the current date dynamically
-    closing_day = forecast_day - timedelta(days=1)
-
-    # Adjust closing_day for Fridays and holidays
-    closing_day = adjust_for_friday_and_holidays(closing_day)
-
-    print(f"[LOG] Forecast Day: {forecast_day}, Adjusted Closing Day: {closing_day}")
-    return forecast_day, closing_day
 
 # Fetch financial indicators
 def fetch_fmp_json(endpoint, params):
@@ -64,12 +54,6 @@ def fetch_vt_close_data(closing_day: date):
             return row
     return None
 
-# Validation to ensure fetched data matches the expected date
-def validate_data_date(fetched_date: str, expected_date: date):
-    fetched_date_obj = datetime.strptime(fetched_date, "%Y-%m-%d").date()
-    if fetched_date_obj != expected_date:
-        raise ValueError(f"Data mismatch: Fetched date {fetched_date_obj} does not match expected date {expected_date}.")
-
 # Fetch news headlines
 def fetch_news_for_period(since: datetime, until: datetime):
     try:
@@ -88,14 +72,21 @@ def fetch_news_for_period(since: datetime, until: datetime):
         print(f"❌ Error fetching news: {e}")
         return []
 
-# Update the forecast pipeline to use now_utc dynamically
 def run_forecast_update():
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
 
     now = datetime.utcnow()
-    forecast_day, closing_day = get_market_timing(now)
+    forecast_day = now.date()
 
+    # Stop execution if the market is closed
+    if not is_market_open(forecast_day):
+        print(f"[LOG] Market is closed on {forecast_day}. Stopping execution.")
+        cursor.close()
+        connection.close()
+        return
+
+    closing_day = get_closing_date(forecast_day - timedelta(days=1))
     print(f"[LOG] Starting forecast update for Forecast Day: {forecast_day}, Closing Day: {closing_day}")
 
     try:
