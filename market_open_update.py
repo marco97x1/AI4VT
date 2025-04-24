@@ -24,7 +24,7 @@ def is_market_open(target_date):
     print(f"⚠️ Failed to fetch market status. Status code: {response.status_code}")
     return False
 
-def fetch_open_price():
+def fetch_open_price(market_day_str):
     url = "https://financialmodelingprep.com/api/v3/historical-chart/1min/VT"
     params = {"apikey": FMP_API_KEY}
     response = requests.get(url, params=params)
@@ -38,6 +38,7 @@ def fetch_open_price():
 def run_market_open_update():
     now = datetime.utcnow()
     market_day = now.date()
+    market_day_str = market_day.strftime("%Y-%m-%d")
 
     # Stop execution if the market is closed
     if not is_market_open(market_day):
@@ -47,7 +48,7 @@ def run_market_open_update():
     connection = psycopg2.connect(DATABASE_URL)
     cursor = connection.cursor()
 
-    open_price = fetch_open_price()
+    open_price = fetch_open_price(market_day_str)
     if open_price is None:
         print("⚠️ Could not fetch open price.")
         cursor.close()
