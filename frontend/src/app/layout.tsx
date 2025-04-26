@@ -5,7 +5,6 @@ import Image from "next/image";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import DottedLine from "@/components/ui/dotted-line";
-import { metadata } from "./metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
