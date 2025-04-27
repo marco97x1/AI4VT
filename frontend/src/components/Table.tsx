@@ -1,5 +1,3 @@
-// Full working component with Pagination (10 per page) and Sentiment/Confidence
-
 "use client"
 
 import * as React from "react"
@@ -26,7 +24,18 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
-export function DataTable({ data }: { data: any[] }) {
+type TableDataPoint = {
+  date: string;
+  open_today: number;
+  close_yesterday: number;
+  real_move_pct: number;
+  average_pct: number;
+  sentiment_score: number;
+  confidence_level: number;
+  correct: boolean;
+};
+
+export function DataTable({ data }: { data: TableDataPoint[] }) {
   const [summary, setSummary] = React.useState<string>("")
   const [loading, setLoading] = React.useState(false)
   const [currentPage, setCurrentPage] = React.useState(1)

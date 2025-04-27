@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 export default function Hero() {
   return (
@@ -19,23 +20,23 @@ export default function Hero() {
       </p>
       <div className="flex flex-wrap gap-2">
         <Badge variant="default">
-          <img src="/fast_api.png" alt="FastAPI Logo" className="inline h-4 w-4 mr-1 filter invert"/>
-          FastAPI
+          <Image src="/fast_api.png" alt="FastAPI Logo" width={16} height={16} className="inline h-4 w-4 mr-1 filter invert" />
+        FastAPI
         </Badge>
         <Badge variant="success">
-          <img src="/supabase-554aca1c.png" alt="Supabase Logo" className="inline h-4 w-4 mr-1" />
+          <Image src="/supabase-554aca1c.png" alt="Supabase Logo" width={16} height={16} className="inline h-4 w-4 mr-1" />
           Supabase
         </Badge>
         <Badge variant="secondary">
-          <img src="/openai-icon.png" alt="OpenAI Logo" className="inline h-4 w-4 mr-1" />
+          <Image src="/openai-icon.png" alt="OpenAI Logo" width={16} height={16} className="inline h-4 w-4 mr-1" />
           OpenAI
         </Badge>
         <Badge variant="outline">
-          <img src="/railway.png" alt="Railway Logo" className="inline h-4 w-4 mr-1" />
+          <Image src="/railway.png" alt="Railway Logo" width={16} height={16} className="inline h-4 w-4 mr-1" />
           Railway
         </Badge>
         <Badge variant="destructive">
-          <img src="/vercel.png" alt="Vercel Logo" className="inline h-4 w-4 mr-1 filter invert" />
+          <Image src="/vercel.png" alt="Vercel Logo" width={16} height={16} className="inline h-4 w-4 mr-1 filter invert" />
           Vercel
         </Badge>
       </div>

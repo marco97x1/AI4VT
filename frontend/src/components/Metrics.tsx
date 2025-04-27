@@ -13,7 +13,17 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function Metrics({ data }: { data: any[] }) {
+type MetricDataPoint = {
+  date: string;
+  average_pct: number;
+  confidence_level: number;
+  open_today: number;
+  real_move_pct: number;
+  sentiment_score: number;
+  correct: boolean;
+};
+
+export default function Metrics({ data }: { data: MetricDataPoint[] }) {
   const [summary, setSummary] = useState("")
   const [marketOpen, setMarketOpen] = useState(false)
 
@@ -146,7 +156,7 @@ export default function Metrics({ data }: { data: any[] }) {
           </CardHeader>
           <CardFooter className="flex flex-col items-start text-sm">
             <div className="font-medium">
-              Confidence level for today's prediction.
+              Confidence level for today&#39; prediction.
             </div>
           </CardFooter>
         </Card>
@@ -194,7 +204,7 @@ export default function Metrics({ data }: { data: any[] }) {
           </CardHeader>
           <CardFooter className="flex flex-col items-start text-sm">
             <div className="font-medium">
-              True market movement from yesterday’s close.
+              True market movement from yesterday&#39;s close.
             </div>
           </CardFooter>
         </Card>
