@@ -7,8 +7,6 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
   Line,
   Bar,
   BarChart,
@@ -36,7 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function LineChartComponent({ data }: { data: any[] }) {
+type ChartDataPoint = {
+  date: string;
+  real_move_pct: number;
+  average_pct: number;
+};
+
+export function LineChartComponent({ data }: { data: ChartDataPoint[] }) {
   const [timeRange, setTimeRange] = React.useState("90d");
 
   const filteredData = data.filter((item) => {
@@ -150,7 +154,7 @@ export function LineChartComponent({ data }: { data: any[] }) {
   );
 }
 
-export function BarChartComponent({ data }: { data: any[] }) {
+export function BarChartComponent({ data }: { data: ChartDataPoint[] }) {
   const [timeRange, setTimeRange] = React.useState("90d");
 
   const filteredData = data.filter((item) => {

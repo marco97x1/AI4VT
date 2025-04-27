@@ -30,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <header className="max-w-7xl mx-auto px-2 py-4">
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold flex items-center space-x-2">
-                  <img src="/logo_bear.png" alt="AI4VT Logo" className="h-12 w-12" />
-                  <span>AI4VT</span>
+                  <Image src="/logo_bear.png" alt="AI4VT Logo" width={48} height={48} className="h-12 w-12" />
+                <span>AI4VT</span>
                 </h1>
                 <nav className="flex space-x-2">
                   <a
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     rel="noopener noreferrer"
                     className="flex items-center space-x-1 border border-black text-black px-3 py-1 rounded-md text-xs"
                   >
-                    <img src="/github-icon.png" alt="GitHub" className="h-4 w-4" />
+                    <Image src="/github-icon.png" alt="GitHub" width={16} height={16} className="h-4 w-4" />
                     <span>GitHub</span>
                   </a>
                   <a
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     rel="noopener noreferrer"
                     className="flex items-center space-x-1 bg-[#0A66C2] text-white px-3 py-1 rounded-md text-xs"
                   >
-                    <img src="/linkedin-app-icon.png" alt="LinkedIn" className="h-4 w-4" />
+                    <Image src="/linkedin-app-icon.png" alt="LinkedIn" width={16} height={16} className="h-4 w-4" />
                     <span>LinkedIn</span>
                   </a>
                 </nav>
@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Built with care and for pure educational purposes to support research and transparency in global investing.
                 <br />
                 © 2025 Marco Beinat · Powered by
-                <img src="/openai-icon.png" alt="OpenAI Logo" className="inline h-4 w-4 mx-1" />
+                <Image src="/openai-icon.png" alt="OpenAI Logo" width={16} height={16} className="inline h-4 w-4 mx-1" />
                 OpenAI
                 <a href="https://www.linkedin.com/in/marco-beinat-5350581bb/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline ml-2">LinkedIn</a>
               </p>
