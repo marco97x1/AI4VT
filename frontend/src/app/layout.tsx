@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <meta name="robots" content="index, follow" />
         <meta property="og:title" content="AI4VT - AI Forecasting for VT ETF" />
+        <meta name="google-site-verification" content="fikhVwo3ZwnbfpNcn_y_6by89m7kfnyDkqD5kcP_tuY" />
         <meta
           property="og:description"
           content="Get AI-powered insights forecasting the next opening move of VT ETF based on news, sentiment, and data."
